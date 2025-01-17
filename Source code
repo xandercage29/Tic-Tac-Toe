@@ -1,0 +1,158 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <limits>
+
+class TicTacToe {
+private:
+    std::vector<std::vector<char>> board;
+    char currentPlayer;
+    bool gameOver;
+
+    // Initialize the board
+    void initializeBoard() {
+        board = std::vector<std::vector<char>>(3, std::vector<char>(3, ' '));
+    }
+
+    // Check if a position is valid
+    bool isValidPosition(int row, int col) {
+        return row >= 0 && row < 3 && col >= 0 && col < 3 && board[row][col] == ' ';
+    }
+
+    // Check for a win
+    bool checkWin() {
+        // Check rows
+        for (int i = 0; i < 3; i++) {
+            if (board[i][0] != ' ' && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
+                return true;
+            }
+        }
+
+        // Check columns
+        for (int i = 0; i < 3; i++) {
+            if (board[0][i] != ' ' && board[0][i] == board[1][i] && board[1][i] == board[2][i]) {
+                return true;
+            }
+        }
+
+        // Check diagonals
+        if (board[0][0] != ' ' && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
+            return true;
+        }
+        if (board[0][2] != ' ' && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check for a draw
+    bool checkDraw() {
+        for (const auto& row : board) {
+            for (char cell : row) {
+                if (cell == ' ') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Switch player turns
+    void switchPlayer() {
+        currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
+    }
+
+    // Clear input buffer
+    void clearInputBuffer() {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+
+public:
+    TicTacToe() : currentPlayer('X'), gameOver(false) {
+        initializeBoard();
+    }
+
+    // Display the game board
+    void displayBoard() {
+        std::cout << "\n";
+        std::cout << "     1   2   3\n";
+        std::cout << "   +---+---+---+\n";
+        for (int i = 0; i < 3; i++) {
+            std::cout << " " << (i + 1) << " | ";
+            for (int j = 0; j < 3; j++) {
+                std::cout << board[i][j] << " | ";
+            }
+            std::cout << "\n   +---+---+---+\n";
+        }
+        std::cout << "\n";
+    }
+
+    // Make a move
+    bool makeMove(int row, int col) {
+        if (!isValidPosition(row - 1, col - 1)) {
+            std::cout << "Invalid move! Try again.\n";
+            return false;
+        }
+
+        board[row - 1][col - 1] = currentPlayer;
+        return true;
+    }
+
+    // Play the game
+    void play() {
+        std::cout << "\nWelcome to Tic Tac Toe!\n";
+        std::cout << "Player 1: X  |  Player 2: O\n";
+
+        while (!gameOver) {
+            displayBoard();
+            std::cout << "Player " << currentPlayer << "'s turn\n";
+            
+            int row, col;
+            bool validMove = false;
+
+            while (!validMove) {
+                std::cout << "Enter row (1-3): ";
+                while (!(std::cin >> row) || row < 1 || row > 3) {
+                    std::cout << "Invalid input! Enter a number between 1 and 3: ";
+                    clearInputBuffer();
+                }
+
+                std::cout << "Enter column (1-3): ";
+                while (!(std::cin >> col) || col < 1 || col > 3) {
+                    std::cout << "Invalid input! Enter a number between 1 and 3: ";
+                    clearInputBuffer();
+                }
+
+                validMove = makeMove(row, col);
+            }
+
+            if (checkWin()) {
+                displayBoard();
+                std::cout << "Player " << currentPlayer << " wins!\n";
+                gameOver = true;
+            } else if (checkDraw()) {
+                displayBoard();
+                std::cout << "It's a draw!\n";
+                gameOver = true;
+            } else {
+                switchPlayer();
+            }
+        }
+    }
+};
+
+int main() {
+    char playAgain;
+    do {
+        TicTacToe game;
+        game.play();
+
+        std::cout << "\nWould you like to play again? (y/n): ";
+        std::cin >> playAgain;
+    } while (tolower(playAgain) == 'y');
+
+    std::cout << "\nThanks for playing!\n";
+    return 0;
+}
