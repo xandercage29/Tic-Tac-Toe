@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <div class="game-status" id="status">Player X's Turn</div>
+        
+        <div class="game-board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <button id="reset-button">Reset Game</button>
+        
+        <div class="score-board">
+            <div class="score">
+                <span>Player X: </span>
+                <span id="score-x">0</span>
+            </div>
+            <div class="score">
+                <span>Player O: </span>
+                <span id="score-o">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // This will handle communication with the C++ backend
+        const makeMove = async (index) => {
+            try {
+                const response = await fetch('http://localhost:8080/move', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ position: index })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        };
+
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('click', async function() {
+                if (!this.textContent) {
+                    const index = this.dataset.index;
+                    const result = await makeMove(index);
+                    
+                    if (result.valid) {
+                        this.textContent = result.player;
+                        document.getElementById('status').textContent = 
+                            result.gameOver ? `Player ${result.player} Wins!` : 
+                            result.draw ? "It's a Draw!" : 
+                            `Player ${result.nextPlayer}'s Turn`;
+                    }
+                }
+            });
+        });
+
+        document.getElementById('reset-button').addEventListener('click', async () => {
+            const response = await fetch('http://localhost:8080/reset', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.success) {
+                document.querySelectorAll('.cell').forEach(cell => {
+                    cell.textContent = '';
+                });
+                document.getElementById('status').textContent = "Player X's Turn";
+            }
+        });
+    </script>
+</body>
+</html>
